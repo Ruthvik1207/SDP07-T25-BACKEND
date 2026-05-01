@@ -8,6 +8,7 @@ const authRoutes = (db) => {
     try {
       const { name, aadhaar, password, role } = req.body;
       if (!name || !aadhaar || !password) return res.status(400).json({ message: 'Missing fields' });
+      if (!/^\d{12}$/.test(aadhaar)) return res.status(400).json({ message: 'Aadhaar must be exactly 12 digits' });
 
       const [existing] = await db.execute('SELECT * FROM users WHERE aadhaar = ?', [aadhaar]);
       if (existing.length > 0) return res.status(400).json({ message: 'Aadhaar already exists' });
