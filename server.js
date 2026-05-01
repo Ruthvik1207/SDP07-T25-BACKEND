@@ -73,6 +73,10 @@ const dbProxy = {
   query: async (...args) => {
     const database = await getDB();
     return database.query(...args);
+  },
+  getConnection: async () => {
+    const database = await getDB();
+    return database.getConnection();
   }
 };
 
