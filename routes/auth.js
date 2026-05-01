@@ -1,7 +1,6 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { v4: uuidv4 } = require('uuid'); 
 const { auth } = require('../middleware/auth');
 
 const authRoutes = (db) => {
