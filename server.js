@@ -19,7 +19,8 @@ app.use((req, res, next) => {
 
 // Database Connection
 let db;
-async function initDB() {
+async function getDB() {
+  if (db) return db;
   try {
     db = await mysql.createPool({
       host: process.env.DB_HOST || 'localhost',
@@ -55,24 +56,45 @@ async function initDB() {
         votes INT DEFAULT 0
       )
     `);
-
-    // Health Check
-    app.get('/api/health', (req, res) => res.json({ status: 'UP' }));
-
-    // Route Registration
-    app.use('/api/auth', authRoutes(db));
-    app.use('/api', votingRoutes(db));
-    app.use('/api/admin', adminRoutes(db));
-
-    const PORT = process.env.PORT || 8080;
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
-
+    
+    return db;
   } catch (err) {
     console.error('Database connection failed:', err.message);
-    process.exit(1);
+    throw err;
   }
 }
 
-initDB();
+// DB Proxy for lazy initialization
+const dbProxy = {
+  execute: async (...args) => {
+    const database = await getDB();
+    return database.execute(...args);
+  },
+  query: async (...args) => {
+    const database = await getDB();
+    return database.query(...args);
+  }
+};
+
+// Health Check
+app.get('/api/health', (req, res) => res.json({ status: 'UP' }));
+app.get('/', (req, res) => res.json({ message: 'Voting System API is running' }));
+
+// Route Registration
+app.use('/api/auth', authRoutes(dbProxy));
+app.use('/api', votingRoutes(dbProxy));
+app.use('/api/admin', adminRoutes(dbProxy));
+
+const PORT = process.env.PORT || 8080;
+if (!process.env.VERCEL) {
+  app.listen(PORT, async () => {
+    try {
+      await getDB();
+      console.log(`Server running on port ${PORT}`);
+    } catch (err) {
+      process.exit(1);
+    }
+  });
+}
+
+module.exports = app;
