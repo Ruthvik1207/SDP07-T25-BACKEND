@@ -24,9 +24,11 @@ async function getDB() {
   try {
     db = await mysql.createPool({
       host: process.env.DB_HOST || 'localhost',
+      port: process.env.DB_PORT || 3306,
       user: process.env.DB_USER || 'root',
       password: process.env.DB_PASS || 'Kl-2401971',
       database: process.env.DB_NAME || 'voting_system',
+      ssl: process.env.DB_HOST && process.env.DB_HOST !== 'localhost' ? { minVersion: 'TLSv1.2', rejectUnauthorized: true } : undefined,
       waitForConnections: true,
       connectionLimit: 10,
       queueLimit: 0
