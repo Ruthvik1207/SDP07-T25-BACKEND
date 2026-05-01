@@ -89,16 +89,4 @@ app.use('/api/auth', authRoutes(dbProxy));
 app.use('/api', votingRoutes(dbProxy));
 app.use('/api/admin', adminRoutes(dbProxy));
 
-const PORT = process.env.PORT || 8080;
-if (!process.env.VERCEL) {
-  app.listen(PORT, async () => {
-    try {
-      await getDB();
-      console.log(`Server running on port ${PORT}`);
-    } catch (err) {
-      process.exit(1);
-    }
-  });
-}
-
 module.exports = app;
